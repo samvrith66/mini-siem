@@ -1,0 +1,11 @@
+# Bytecode & cache
+__pycache__/
+*.py[cod]
+
+# SQLite local databases
+*.db
+*.sqlite3
+
+# Virtual environments
+venv/
+.venv/
