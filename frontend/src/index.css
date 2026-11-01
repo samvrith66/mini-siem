@@ -1,0 +1,120 @@
+/* src/index.css – Mini-SIEM Design System */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base ──────────────────────────────────────────────── */
+@layer base {
+  body {
+    @apply bg-[#070b1a] text-gray-200 antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: #0d1325; }
+  ::-webkit-scrollbar-thumb { background: #1e2a4a; border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #2a3b5c; }
+}
+
+/* ── Component Utilities ──────────────────────────────── */
+@layer components {
+  /* Glass-style card used everywhere */
+  .soc-card {
+    @apply bg-[#0f1629] border border-[#1a2544] rounded-xl;
+    box-shadow: 0 0 0 1px rgba(0, 180, 216, 0.03),
+                0 4px 24px rgba(0, 0, 0, 0.35);
+  }
+
+  /* KPI stat card with left accent border */
+  .kpi-card {
+    @apply soc-card p-5 relative overflow-hidden transition-all duration-300;
+  }
+  .kpi-card:hover {
+    border-color: rgba(0, 180, 216, 0.25);
+    box-shadow: 0 0 20px rgba(0, 180, 216, 0.08);
+  }
+  .kpi-card::before {
+    content: '';
+    @apply absolute left-0 top-0 bottom-0 w-1 rounded-l-xl;
+  }
+  .kpi-card.kpi-cyan::before   { background: #00b4d8; }
+  .kpi-card.kpi-red::before    { background: #e63946; }
+  .kpi-card.kpi-orange::before { background: #f48c06; }
+  .kpi-card.kpi-green::before  { background: #2a9d8f; }
+  .kpi-card.kpi-purple::before { background: #7c3aed; }
+
+  /* Severity badges */
+  .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold; }
+  .badge-critical { @apply badge bg-red-500/15 text-red-400; }
+  .badge-high     { @apply badge bg-orange-500/15 text-orange-400; }
+  .badge-medium   { @apply badge bg-blue-500/15 text-blue-400; }
+  .badge-low      { @apply badge bg-teal-500/15 text-teal-400; }
+  .badge-new      { @apply badge bg-cyan-500/15 text-cyan-400; }
+  .badge-investigating { @apply badge bg-yellow-500/15 text-yellow-400; }
+  .badge-resolved { @apply badge bg-green-500/15 text-green-400; }
+  .badge-operational { @apply badge bg-emerald-500/15 text-emerald-400 border border-emerald-500/20; }
+
+  /* Table styles */
+  .soc-table { @apply w-full text-sm; }
+  .soc-table thead { @apply border-b border-[#1a2544]; }
+  .soc-table th { @apply px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider; }
+  .soc-table td { @apply px-4 py-3 text-sm text-gray-300; }
+  .soc-table tbody tr { @apply border-b border-[#111b33] transition-colors duration-150; }
+  .soc-table tbody tr:hover { background: rgba(0, 180, 216, 0.04); }
+
+  /* Sidebar nav link */
+  .nav-link {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium
+           text-gray-400 transition-all duration-200;
+  }
+  .nav-link:hover { @apply text-gray-200 bg-[#141d35]; }
+  .nav-link.active {
+    @apply text-cyan-400 bg-cyan-500/10;
+    box-shadow: inset 3px 0 0 #00b4d8;
+  }
+
+  /* Glow button */
+  .btn-glow {
+    @apply px-6 py-3 rounded-lg font-semibold text-white transition-all duration-300;
+    background: linear-gradient(135deg, #00b4d8, #0077b6);
+    box-shadow: 0 0 20px rgba(0, 180, 216, 0.3);
+  }
+  .btn-glow:hover {
+    box-shadow: 0 0 30px rgba(0, 180, 216, 0.5);
+    transform: translateY(-1px);
+  }
+}
+
+/* ── Animations ───────────────────────────────────────── */
+@keyframes network-bg {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-network {
+  background: linear-gradient(270deg, #070b1a, #001f3f, #070b1a);
+  background-size: 600% 600%;
+  animation: network-bg 12s ease infinite;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fade-in 0.5s ease-out both; }
+.animate-delay-1 { animation-delay: 0.1s; }
+.animate-delay-2 { animation-delay: 0.2s; }
+.animate-delay-3 { animation-delay: 0.3s; }
+.animate-delay-4 { animation-delay: 0.4s; }
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 180, 216, 0.15); }
+  50%      { box-shadow: 0 0 20px rgba(0, 180, 216, 0.3); }
+}
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+
+/* ── Threat feed ticker ───────────────────────────────── */
+@keyframes ticker {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+.animate-ticker { animation: ticker 30s linear infinite; }

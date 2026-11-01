@@ -9,3 +9,49 @@ __pycache__/
 # Virtual environments
 venv/
 .venv/
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+
+# SQLite local databases
+*.db
+*.sqlite3
+
+# Python virtual environments
+venv/
+.venv/
+env/
+
+# Python testing and cache
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Frontend dependencies
+frontend/node_modules/
+
+# Frontend build output
+frontend/dist/
+frontend/.vite/
+frontend/coverage/
+
+# Environment variables - never commit secrets
+.env
+.env.local
+.env.*.local
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
