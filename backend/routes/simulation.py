@@ -327,11 +327,14 @@ def _execute_scenario_core(scenario_id: str):
             events_generated += 1
             all_triggered_alerts.extend(alerts)
 
+    # Deduplicate triggered alerts by alert ID preserving the latest updated state
+    unique_alerts = list({a["id"]: a for a in all_triggered_alerts}.values())
+
     return jsonify({
         "message": f"Simulation scenario '{scenario_id}' executed successfully",
         "scenario": SCENARIOS[scenario_id],
         "events_generated": events_generated,
-        "alerts_triggered": all_triggered_alerts
+        "alerts_triggered": unique_alerts
     }), 200
 
 

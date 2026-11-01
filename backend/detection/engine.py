@@ -21,11 +21,13 @@ def _record_or_update_alert(
     source_ip: Optional[str],
     destination_ip: Optional[str],
     details: Dict[str, Any],
-    mitigation_hint: str
+    mitigation_hint: str,
+    event_count: Optional[int] = None
 ) -> Dict[str, Any]:
     """
     Insert a new alert or aggregate with an existing open alert for the same rule and source_ip.
     Prevents alert fatigue by incrementing event_count for repeated incidents within 5 minutes.
+    If event_count is explicitly provided, it ensures the alert's event_count matches the correlated event count.
     """
     now = get_utc_now_iso()
     cutoff = _get_window_timestamp(300)
@@ -46,7 +48,10 @@ def _record_or_update_alert(
 
     if existing:
         alert_id = existing["id"]
-        new_count = existing["event_count"] + 1
+        if event_count is not None:
+            new_count = max(existing["event_count"] + 1, event_count)
+        else:
+            new_count = existing["event_count"] + 1
         db.execute(
             """
             UPDATE alerts
@@ -60,14 +65,15 @@ def _record_or_update_alert(
             (now, new_count, description, details_json, mitigation_hint, alert_id)
         )
     else:
+        initial_count = event_count if event_count is not None else 1
         cursor = db.execute(
             """
             INSERT INTO alerts (
                 timestamp, rule_id, rule_name, severity, description,
                 status, source_ip, destination_ip, event_count, details, mitigation_hint
-            ) VALUES (?, ?, ?, ?, ?, 'OPEN', ?, ?, 1, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?)
             """,
-            (now, rule_id, rule_name, severity, description, source_ip, destination_ip, details_json, mitigation_hint)
+            (now, rule_id, rule_name, severity, description, source_ip, destination_ip, initial_count, details_json, mitigation_hint)
         )
         alert_id = cursor.lastrowid
 
@@ -117,7 +123,8 @@ def evaluate_event(db: sqlite3.Connection, event: Dict[str, Any]) -> List[Dict[s
                     "target_ip": destination_ip,
                     "triggering_event_id": event.get("id")
                 },
-                mitigation_hint="Temporarily rate-limit or block source IP, enforce MFA, and review authentication logs."
+                mitigation_hint="Temporarily rate-limit or block source IP, enforce MFA, and review authentication logs.",
+                event_count=fail_count
             )
             triggered_alerts.append(alert)
 
@@ -148,7 +155,8 @@ def evaluate_event(db: sqlite3.Connection, event: Dict[str, Any]) -> List[Dict[s
                     "last_port": event.get("destination_port"),
                     "triggering_event_id": event.get("id")
                 },
-                mitigation_hint="Inspect firewall access controls, block scanner IP, and shut down unneeded listening services."
+                mitigation_hint="Inspect firewall access controls, block scanner IP, and shut down unneeded listening services.",
+                event_count=port_count
             )
             triggered_alerts.append(alert)
 
@@ -251,7 +259,8 @@ def evaluate_event(db: sqlite3.Connection, event: Dict[str, Any]) -> List[Dict[s
                     "target_ip": destination_ip,
                     "triggering_event_id": event.get("id")
                 },
-                mitigation_hint="Enable rate-limiting, activate Cloud/WAF anti-DDoS mitigations, or null-route malicious traffic."
+                mitigation_hint="Enable rate-limiting, activate Cloud/WAF anti-DDoS mitigations, or null-route malicious traffic.",
+                event_count=volume
             )
             triggered_alerts.append(alert)
 
