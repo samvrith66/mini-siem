@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AreaChart,
   Area,
@@ -8,21 +8,13 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
+import { fetchTimeline, TimelineBucket } from '../../services/statsService';
 
-const demoData = [
-  { time: '00:00', events: 45, alerts: 8 },
-  { time: '02:00', events: 52, alerts: 12 },
-  { time: '04:00', events: 38, alerts: 6 },
-  { time: '06:00', events: 65, alerts: 14 },
-  { time: '08:00', events: 85, alerts: 22 },
-  { time: '10:00', events: 72, alerts: 18 },
-  { time: '12:00', events: 110, alerts: 28 },
-  { time: '14:00', events: 95, alerts: 24 },
-  { time: '16:00', events: 130, alerts: 35 },
-  { time: '18:00', events: 105, alerts: 20 },
-  { time: '20:00', events: 78, alerts: 15 },
-  { time: '22:00', events: 60, alerts: 10 },
-];
+interface ChartPoint {
+  time: string;
+  events: number;
+  alerts: number;
+}
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
@@ -39,21 +31,57 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 function EventChart() {
+  const [data, setData] = useState<ChartPoint[]>([]);
+
+  const loadTimeline = () => {
+    fetchTimeline()
+      .then((res) => {
+        if (res && Array.isArray(res.timeline)) {
+          const formatted = res.timeline.map((b: TimelineBucket) => {
+            let label = b.hour;
+            try {
+              const dt = new Date(b.hour);
+              label = dt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+            } catch {
+              label = b.hour.slice(11, 16);
+            }
+            return {
+              time: label,
+              events: b.events,
+              alerts: b.alerts,
+            };
+          });
+          setData(formatted);
+        }
+      })
+      .catch(() => {
+        // Fallback or empty
+      });
+  };
+
+  useEffect(() => {
+    loadTimeline();
+
+    const handleRefresh = () => {
+      loadTimeline();
+    };
+
+    window.addEventListener('siem:refresh', handleRefresh);
+    return () => {
+      window.removeEventListener('siem:refresh', handleRefresh);
+    };
+  }, []);
+
   return (
     <div className="soc-card p-5 h-80">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-white">Real-time Attack Map</h3>
-          <p className="text-[10px] text-gray-500 mt-0.5">Events &amp; alerts over 24 hours · Demo data</p>
+          <h3 className="text-sm font-semibold text-white">Security Event &amp; Alert Telemetry</h3>
+          <p className="text-[10px] text-gray-500 mt-0.5">Events &amp; alerts over the past 24 hours</p>
         </div>
-        <select className="bg-[#141d35] border border-[#1a2544] text-xs text-gray-400 rounded-md px-2 py-1 outline-none">
-          <option>Last 24 Hours</option>
-          <option>Last 7 Days</option>
-          <option>Last 30 Days</option>
-        </select>
       </div>
       <ResponsiveContainer width="100%" height="85%">
-        <AreaChart data={demoData}>
+        <AreaChart data={data.length > 0 ? data : [{ time: 'Now', events: 0, alerts: 0 }]}>
           <defs>
             <linearGradient id="gradEvents" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#00b4d8" stopOpacity={0.3} />

@@ -13,34 +13,7 @@ import {
   Settings,
   Shield,
 } from 'lucide-react';
-
-const navSections = [
-  {
-    items: [
-      { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
-      { to: '/logs', label: 'Real-time Monitor', icon: Monitor },
-      { to: '/alerts', label: 'SIEM Search', icon: Search },
-    ],
-  },
-  {
-    items: [
-      { to: '/alerts', label: 'Alerts', icon: AlertTriangle, badge: 12 },
-      { to: '/threats', label: 'Incidents', icon: Crosshair },
-      { to: '/analytics', label: 'Endpoint Security', icon: ShieldAlert },
-    ],
-  },
-  {
-    items: [
-      { to: '#', label: 'Network Watch', icon: Globe },
-      { to: '#', label: 'Threat Intelligence', icon: Shield },
-      { to: '#', label: 'Vulnerability Mgmt', icon: ShieldAlert },
-      { to: '#', label: 'Case Management', icon: FileText },
-      { to: '#', label: 'Reports', icon: FileText },
-      { to: '#', label: 'Playbooks', icon: BookOpen },
-      { to: '#', label: 'Settings', icon: Settings },
-    ],
-  },
-];
+import { useStats } from '../../hooks/useStats';
 
 /* Data-source indicators shown at the bottom */
 const dataSources = [
@@ -56,6 +29,43 @@ interface SidebarProps {
 }
 
 function Sidebar({ collapsed = false }: SidebarProps) {
+  const { data: stats } = useStats();
+
+  const openCount = stats?.open_alerts ?? 0;
+
+  const navSections = [
+    {
+      items: [
+        { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+        { to: '/logs', label: 'Log Explorer', icon: Monitor },
+        { to: '/alerts', label: 'SIEM Search', icon: Search },
+      ],
+    },
+    {
+      items: [
+        {
+          to: '/alerts',
+          label: 'Alerts',
+          icon: AlertTriangle,
+          badge: openCount > 0 ? openCount : undefined,
+        },
+        { to: '/threats', label: 'Threat Lab', icon: Crosshair },
+        { to: '/analytics', label: 'Endpoint Security', icon: ShieldAlert },
+      ],
+    },
+    {
+      items: [
+        { to: '#', label: 'Network Watch', icon: Globe },
+        { to: '#', label: 'Threat Intelligence', icon: Shield },
+        { to: '#', label: 'Vulnerability Mgmt', icon: ShieldAlert },
+        { to: '#', label: 'Case Management', icon: FileText },
+        { to: '#', label: 'Reports', icon: FileText },
+        { to: '#', label: 'Playbooks', icon: BookOpen },
+        { to: '#', label: 'Settings', icon: Settings },
+      ],
+    },
+  ];
+
   return (
     <nav
       className={`flex flex-col h-full bg-[#0a0f24] border-r border-[#1a2544] transition-all duration-300
@@ -95,8 +105,8 @@ function Sidebar({ collapsed = false }: SidebarProps) {
                 {!collapsed && (
                   <>
                     <span className="flex-1">{item.label}</span>
-                    {item.badge && (
-                      <span className="ml-auto flex items-center justify-center w-5 h-5 rounded-full bg-red-500 text-[10px] font-bold text-white">
+                    {item.badge !== undefined && (
+                      <span className="ml-auto flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-red-500 text-[10px] font-bold text-white">
                         {item.badge}
                       </span>
                     )}
